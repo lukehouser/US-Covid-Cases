@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Covid Cases in United States</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* the layout of the legend panel */
+        #legend {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 110px;
+            background: #fff;
+            margin-right: 20px;
+            margin-bottom: 40px;
+            padding: 10px 20px 10px 10px;
+            border-radius: 3px;
+            text-align: center;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .map-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                background: rgba(255, 255, 255, 0.8);
+                border-style: solid;
+                border-width: 1px;
+                border-color: rgba(0, 0, 0, 0.2);
+                margin-left: 20px;
+                font-family: Arial, sans-serif;
+                overflow: auto;
+                border-radius: 3px;
+            }
+
+        /* each line for a break */
+        .break {
+            position: relative;
+            margin: 0px;
+            padding: 0px;
+        }
+
+        /* basic style for a dot/circle */
+        .dot {
+            display: inline-block;
+            margin-top: 5px;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        /* the label for the dot */
+        .dot-label {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-style: italic;
+        }
+
+        /* the text color of a hyper link */
+        a {
+            color: black
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="legend"></div>
+    <div class='map-overlay' id='features'>
+        <h2>Covid Cases per County</h2>
+        <div id='text-escription'>
+            <p>Click on a county!</p>
+        </div>
+    </div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiamFrb2J6aGFvIiwiYSI6ImNpcms2YWsyMzAwMmtmbG5icTFxZ3ZkdncifQ.P9MBej1xacybKcDN_jehvw';
+
+        const map = new mapboxgl.Map({
+                container: 'map', // container ID
+                style: 'mapbox://styles/mapbox/light-v10', // style URL
+                zoom: 3, // starting zoom
+                center: [-100, 40] // starting center
+            }
+        );
+
+        async function geojsonFetch() { 
+            let response = await fetch('assets/us-covid-2020-counts.geojson');
+            let covidData = await response.json();
+
+            map.on('load', function loadingData(){
+                map.addSource('covidData', {
+                type: 'geojson',
+                data: covidData
+            });
+
+            map.addLayer({
+                'id': 'covidData-layer',
+                'type': 'circle',
+                'source': 'covidData',
+                'minzoom': 5,
+                'paint': {
+                    // increase the radius of the circle as the zoom level and dbh value increases
+                    'circle-color': [
+                        'step',
+                        ['get', 'cases'],
+                        '#FFEDA0',   // stop_output_0
+                        200,          // stop_input_0
+                        '#FED976',   // stop_output_1
+                        1000,          // stop_input_1
+                        '#FEB24C',   // stop_output_2
+                        2000,          // stop_input_2
+                        '#FD8D3C',   // stop_output_3
+                        5000,         // stop_input_3
+                        '#FC4E2A',   // stop_output_4
+                        10000,         // stop_input_4
+                        '#E31A1C',   // stop_output_5
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'cases'],
+                        2,   // stop_output_0
+                        200,          // stop_input_0
+                        4,   // stop_output_1
+                        1000,          // stop_input_1
+                        6,   // stop_output_2
+                        2000,          // stop_input_2
+                        8,   // stop_output_3
+                        5000,         // stop_input_3
+                        10,   // stop_output_4
+                        10000,         // stop_input_4
+                        20,   // stop_output_5
+                    ],
+                    'circle-stroke-color': 'white',
+                    'circle-stroke-width': 1,
+                    'circle-opacity': 0.6
+                }
+                })
+            });
+
+            map.on('click', 'covidData-layer', (event) => {
+                new mapboxgl.Popup()
+                    .setLngLat(event.features[0].geometry.coordinates)
+                    .setHTML(`<strong>${event.features[0].properties.county} County<br>Cases:</strong> ${event.features[0].properties.cases}`)
+                    .addTo(map);
+            });
+
+        }
+
+        
+
+        geojsonFetch();
+
+    </script>
+
+</body>
+
+</html>
