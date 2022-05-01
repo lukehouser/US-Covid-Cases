@@ -13,3 +13,7 @@ The first map included, can be found at map1.html. This map shows the viewer a c
 ![count map](img/map2.png)
 
 The second map included is map2.html. This is a dot density map by U.S. county visualizing the number of cases by county. A feature of this map is that the user is able to click on an individual dot in order to see the exact number of cases.
+
+## Data
+
+The COVID-19 case/death data is from The New York Times. The population data used is from the 2018 ACS 5 year estimates. The U.S. County Shapefile was downloaded from the U.S. Census Bureau. The data has additionally been processed by Steven Bao and University of Washington Geog 458 TAs.
